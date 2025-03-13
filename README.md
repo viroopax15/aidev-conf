@@ -41,6 +41,7 @@ The base application contains a very basic voice prompt for the application, but
 - **Objective:** Initialize a Realtime session with a more expressive voice prompt, and another voice other than the default one currently used. Have the model start the conversation by speaking a greeting aloud.
 - **Starting branch:** `git checkout step_1_start`
 - **Solution branch:** `git checkout step_1_solution`
+- [What changed](https://github.com/kwhinnery-openai/aidev-conf/compare/step_1_start...step_1_solution)?
 
 **Useful resources:**
 
