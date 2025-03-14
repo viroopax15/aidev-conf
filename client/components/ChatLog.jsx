@@ -30,11 +30,10 @@ export default function ChatLog() {
       };
     } else if (
       event.type === "conversation.item.created" &&
-      event?.item?.role === "user" &&
       event?.item?.content?.[0]?.text?.trim()
     ) {
       message = {
-        role: "user",
+        role: event?.item?.role || "user",
         content: event.item.content[0].text,
       };
     } else if (

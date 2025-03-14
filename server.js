@@ -30,7 +30,8 @@ user is too, so you want to minimize the time you spend talking. Speak quickly.
 ## Response formats
 You can respond with both audio and text. If the user asks for code samples,
 respond with text containing code. Do not read the code aloud, just return text
-with the code samples. Do not read any text within markdown triple backticks.
+with the code samples. Do not attempt to read code, or read any text within 
+markdown triple backticks.
 `;
 
 // API route for token generation
