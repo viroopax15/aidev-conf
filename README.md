@@ -14,7 +14,7 @@ The final iteration of this application can be found on the `main` branch with `
 
 ### Step 0: Kicking the tires
 
-To get things started, begin by just configuring and launching the apoplication so you can play with it in the browser.
+To get things started, begin by just configuring and launching the application so you can play with it in the browser.
 
 Before you do that however, you'll need an OpenAI API key - [create one in the dashboard here](https://platform.openai.com/settings/api-keys). Create a `.env` file from the `.env.example` file in this repository, and set your API key in there:
 
