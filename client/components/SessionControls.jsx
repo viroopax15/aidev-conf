@@ -1,10 +1,16 @@
 import { useState } from "react";
-import { CloudLightning, CloudOff, MessageSquare } from "react-feather";
+import {
+  CloudLightning,
+  CloudOff,
+  MessageSquare,
+  Mic,
+  MicOff,
+} from "react-feather";
+import { useRealtime } from "./RealtimeContext";
 import Button from "./Button";
 
 function SessionStopped({ startSession }) {
   const [isActivating, setIsActivating] = useState(false);
-
   function handleStartSession() {
     if (isActivating) return;
 
@@ -25,12 +31,18 @@ function SessionStopped({ startSession }) {
   );
 }
 
-function SessionActive({ stopSession, sendTextMessage }) {
+function SessionActive({ stopSession, sendTextMessage, toggleMute }) {
   const [message, setMessage] = useState("");
+  const [isMicActive, setIsMicActive] = useState(true);
 
   function handleSendClientEvent() {
     sendTextMessage(message);
     setMessage("");
+  }
+
+  function toggleMic() {
+    toggleMute(!isMicActive);
+    setIsMicActive(!isMicActive);
   }
 
   return (
@@ -61,18 +73,26 @@ function SessionActive({ stopSession, sendTextMessage }) {
       <Button onClick={stopSession} icon={<CloudOff height={16} />}>
         disconnect
       </Button>
+      <Button
+        onClick={toggleMic}
+        icon={isMicActive ? <Mic height={16} /> : <MicOff height={16} />}
+      >
+        {isMicActive ? "mute" : "unmute"}
+      </Button>
     </div>
   );
 }
 
-export default function SessionControls({
-  startSession,
-  stopSession,
-  sendClientEvent,
-  sendTextMessage,
-  serverEvents,
-  isSessionActive,
-}) {
+export default function SessionControls() {
+  const {
+    isSessionActive,
+    startSession,
+    stopSession,
+    sendClientEvent,
+    sendTextMessage,
+    toggleMute,
+  } = useRealtime();
+
   return (
     <div className="flex gap-4 border-t-2 border-gray-200 h-full rounded-md">
       {isSessionActive ? (
@@ -80,7 +100,7 @@ export default function SessionControls({
           stopSession={stopSession}
           sendClientEvent={sendClientEvent}
           sendTextMessage={sendTextMessage}
-          serverEvents={serverEvents}
+          toggleMute={toggleMute}
         />
       ) : (
         <SessionStopped startSession={startSession} />

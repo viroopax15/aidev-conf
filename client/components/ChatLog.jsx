@@ -1,24 +1,28 @@
+import Markdown from "react-markdown";
+import { useRealtime } from "./RealtimeContext";
+
 function ChatMessage({ message }) {
   return (
     <div className="flex flex-col gap-2 p-2 rounded-md bg-gray-50">
       <div className="flex flex-col gap-2">
-        <div className="text-s font-bold">{message.role}:</div>
-        <div className="text-sm text-gray-500">{message.content}</div>
+        <div className="text-sm text-blue-500 font-bold">{message.role}</div>
+        <div className="markdown-body">
+          <Markdown>{message.content}</Markdown>
+        </div>
       </div>
     </div>
   );
 }
 
-export default function ChatLog({ events }) {
+export default function ChatLog() {
+  const { events } = useRealtime();
   const eventsToDisplay = [];
 
   events.forEach((event) => {
     let message = null;
-
     if (
       event.type === "conversation.item.input_audio_transcription.completed" &&
-      event.transcript &&
-      event.transcript.trim() !== ""
+      event?.transcript?.trim()
     ) {
       message = {
         role: "user",
@@ -26,10 +30,8 @@ export default function ChatLog({ events }) {
       };
     } else if (
       event.type === "conversation.item.created" &&
-      event.item.role &&
-      event.item.role === "user" &&
-      event.item.content[0].text &&
-      event.item.content[0].text.trim() !== ""
+      event?.item?.role === "user" &&
+      event?.item?.content?.[0]?.text?.trim()
     ) {
       message = {
         role: "user",
@@ -37,8 +39,7 @@ export default function ChatLog({ events }) {
       };
     } else if (
       event.type === "response.done" &&
-      event.response.output[0]?.content[0]?.transcript &&
-      event.response.output[0]?.content[0]?.transcript.trim() !== ""
+      event?.response?.output?.[0]?.content?.[0]?.transcript?.trim()
     ) {
       message = {
         role: "assistant",
@@ -46,7 +47,7 @@ export default function ChatLog({ events }) {
       };
     }
 
-    if (message) {
+    if (message && message?.content?.trim() !== "") {
       eventsToDisplay.push(
         <ChatMessage key={event.event_id} message={message} />,
       );

@@ -1,66 +1,122 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useRealtime } from "./RealtimeContext";
+
+const functionDescription = `
+Call this function when a user asks for a color palette.
+`;
 
 const sessionUpdate = {
   type: "session.update",
   session: {
     tools: [
-      // TODO: add tools here
+      {
+        type: "function",
+        name: "display_color_palette",
+        description: functionDescription,
+        parameters: {
+          type: "object",
+          strict: true,
+          properties: {
+            theme: {
+              type: "string",
+              description: "Description of the theme for the color scheme.",
+            },
+            colors: {
+              type: "array",
+              description: "Array of five hex color codes based on the theme.",
+              items: {
+                type: "string",
+                description: "Hex color code",
+              },
+            },
+          },
+          required: ["theme", "colors"],
+        },
+      },
     ],
     tool_choice: "auto",
   },
 };
 
 function FunctionCallOutput({ functionCallOutput }) {
-  // const { TODO } = JSON.parse(functionCallOutput.arguments);
+  const { theme, colors } = JSON.parse(functionCallOutput.arguments);
 
-  return <div className="flex flex-col gap-2"></div>;
+  const colorBoxes = colors.map((color) => (
+    <div
+      key={color}
+      className="w-full h-16 rounded-md flex items-center justify-center border border-gray-200"
+      style={{ backgroundColor: color }}
+    >
+      <p className="text-sm font-bold text-black bg-slate-100 rounded-md p-2 border border-black">
+        {color}
+      </p>
+    </div>
+  ));
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p>Theme: {theme}</p>
+      {colorBoxes}
+      <pre className="text-xs bg-gray-100 rounded-md p-2 overflow-x-auto">
+        {JSON.stringify(functionCallOutput, null, 2)}
+      </pre>
+    </div>
+  );
 }
 
-export default function ToolPanel({
-  isSessionActive,
-  sendClientEvent,
-  events,
-}) {
+export default function ToolPanel() {
   const [functionAdded, setFunctionAdded] = useState(false);
   const [functionCallOutput, setFunctionCallOutput] = useState(null);
+  const handledFunctionCalls = useRef({});
+
+  const { sendClientEvent, isSessionActive, functionCalls } = useRealtime();
 
   useEffect(() => {
-    if (!events || events.length === 0) return;
+    functionCalls.forEach((functionCall) => {
+      if (handledFunctionCalls.current[functionCall.response.id]) return;
 
-    const firstEvent = events[events.length - 1];
-    if (!functionAdded && firstEvent.type === "session.created") {
-      sendClientEvent(sessionUpdate);
-      setFunctionAdded(true);
-    }
-
-    const mostRecentEvent = events[0];
-    if (
-      mostRecentEvent.type === "response.done" &&
-      mostRecentEvent.response.output
-    ) {
-      mostRecentEvent.response.output.forEach((output) => {
-        if (output.type === "function_call" && output.name === "TODO") {
-        }
-      });
-    }
-  }, [events]);
+      if (
+        functionCall?.response?.output?.[0]?.name === "display_color_palette"
+      ) {
+        setFunctionCallOutput(functionCall.response.output[0]);
+        setTimeout(() => {
+          sendClientEvent({
+            type: "response.create",
+            response: {
+              instructions: `
+              ask for feedback about the color palette - don't repeat 
+              the colors, just ask if they like the colors.
+            `,
+            },
+          });
+        }, 500);
+        handledFunctionCalls.current[functionCall.response.id] = true;
+      }
+    });
+  }, [functionCalls]);
 
   useEffect(() => {
     if (!isSessionActive) {
       setFunctionAdded(false);
-      setFunctionCallOutput(null);
+    } else {
+      setTimeout(() => {
+        if (!functionAdded) {
+          sendClientEvent(sessionUpdate);
+          setFunctionAdded(true);
+        }
+      }, 500);
     }
   }, [isSessionActive]);
 
   return (
     <section className="h-full w-full flex flex-col gap-4">
       <div className="h-full bg-gray-50 rounded-md p-4">
-        <h2 className="text-lg font-bold">Code Sample Tool</h2>
+        <h2 className="text-lg font-bold">Color Palette Tool</h2>
         {isSessionActive ? (
           functionCallOutput ? (
             <FunctionCallOutput functionCallOutput={functionCallOutput} />
           ) : (
-            <p>Ask for advice on a code sample...</p>
+            <p>Ask for advice on a color palette...</p>
           )
         ) : (
           <p>Start the session to use this tool...</p>

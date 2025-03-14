@@ -1,5 +1,6 @@
 import { ArrowUp, ArrowDown } from "react-feather";
 import { useState } from "react";
+import { useRealtime } from "./RealtimeContext";
 
 function Event({ event, timestamp }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -33,8 +34,9 @@ function Event({ event, timestamp }) {
   );
 }
 
-export default function EventLog({ events }) {
-  const eventsToDisplay = [];
+export default function EventLog() {
+  const { events } = useRealtime();
+  let eventsToDisplay = [];
   let deltaEvents = {};
 
   events.forEach((event) => {
@@ -58,7 +60,7 @@ export default function EventLog({ events }) {
 
   return (
     <div className="flex flex-col gap-2 overflow-x-auto">
-      {events.length === 0 ? (
+      {eventsToDisplay.length === 0 ? (
         <div className="text-gray-500">Awaiting events...</div>
       ) : (
         eventsToDisplay
